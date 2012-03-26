@@ -51,7 +51,6 @@ def send_weibo(class_info, students):
             (class_info['teacher'], class_info['name'], class_info['where'])
     text2 = ' '.join(['@'+name for name in students])
     status = text1 + ' ' + text2
-    print status
     weiboclient = WeiboClient()
     weiboclient.send_status(status)
 

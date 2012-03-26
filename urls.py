@@ -6,6 +6,8 @@ from course_server import views
 
 urlpatterns = patterns('',
     ('^key/$', views.key),
+    ('^key/gen/$', views.key_gen),
+    ('^key/callback/$', views.key_callback),
     ('^course/upload/$', views.upload_courses),
     # Examples:
     # url(r'^$', 'course_server.views.home', name='home'),

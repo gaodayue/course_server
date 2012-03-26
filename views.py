@@ -1,14 +1,49 @@
 from django.http import HttpResponse
+from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from pymongo import Connection
 from pymongo.errors import ConnectionFailure
+from weibo import APIClient
+import time
 import json
 import pickle
 
+APP_KEY = '1969610127'
+APP_SECRET = '859a989986363a2e0fb2bb7ec86335a5'
+CALLBACK = '/key/callback/'
+TOKEN_FILE = 'access_token.pickle'
+
 def key(request):
-    pickle_file = open('access_token.pickle', 'r') 
-    data = pickle.load(pickle_file)
-    return HttpResponse("%s : %s" % (data['access_token'], data['expires_in']))
+    """
+    show the sinaweibo's access token expired data,
+    if such token doesn't exist, redirect to 'key_gen' view
+    to generate the token
+    """
+    try:
+        pickle_file = open(TOKEN_FILE, 'rb')
+        data = pickle.load(pickle_file)
+        expires_time = time.ctime(data['expires_in'])
+    except:
+        return redirect("/key/gen/")
+    return render(request, "show_key.html", {"expires_time":expires_time})
+
+def key_gen(request):
+    callback_uri = "http://%s%s" % (request.META['HTTP_HOST'], CALLBACK)
+    client = APIClient(APP_KEY, APP_SECRET, callback_uri)
+    return redirect(client.get_authorize_url())
+
+def key_callback(request):
+    code = request.GET['code']
+    callback_uri = "http://%s%s" % (request.META['HTTP_HOST'], CALLBACK)
+    client = APIClient(APP_KEY, APP_SECRET, callback_uri)
+    r = client.request_access_token(code)
+    client.set_access_token(r.access_token, r.expires_in)
+    pickle_file = open(TOKEN_FILE, 'wb')
+    pickle.dump({
+        "access_token":r.access_token,
+        "expires_in":r.expires_in
+        },pickle_file)
+    return redirect('/key/')
 
 @csrf_exempt
 def upload_courses(request):
