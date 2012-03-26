@@ -1,9 +1,10 @@
 import weibo
+import urllib2
 import time
 import pickle
 
 def log(text):
-    f = open('weibo.log', 'a+')
+    f = open('sina_weibo.log', 'a+')
     f.write('%s\t%s' % 
             (time.strftime("%Y-%m-%d %H:%M:%S"), text.encode('utf-8')))
     f.write('\n')
@@ -21,5 +22,11 @@ class WeiboClient:
     def send_status(self, status):
         log(status)
         if not self.client.is_expires():
-            self.client.post.statuses__update(status=status)
+            try:
+                self.client.post.statuses__update(status=status)
+            except weibo.APIError as err:
+                print err
+            except urllib2.HTTPError as err:
+                print err
+
 

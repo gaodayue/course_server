@@ -38,6 +38,7 @@ def get_today_courses(today):
     try:
         connection = Connection()
     except ConnectionFailure, ex:
+        print 'db connection failed'
         # TODO: should report error to admin
         return []
     db = connection['bjtu_courses']
@@ -58,6 +59,7 @@ def run():
     while True:
         now = datetime.now()
         session = next_course_session(now.time())
+        sleeped_seconds = 0
         if session:
             today_courses = get_today_courses(now.date())
             for course in today_courses:
@@ -69,7 +71,9 @@ def run():
                         class_info['session'] = session
                         class_info['where'] = item['where']
                         send_weibo(class_info, course['students'])
-        sleep(INTERVAL_MINUTE * 60)
+                        sleep(3)
+                        sleeped_seconds += 3
+        sleep(INTERVAL_MINUTE * 60 - sleeped_seconds)
 
 if __name__ == '__main__':
     run()
